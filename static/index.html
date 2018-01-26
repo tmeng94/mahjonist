@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mahjong Score Calculator</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+<h1>Mahjong Score Calculator</h1>
+<button type="button" class="btn btn-primary" id="newGame" disabled>New Game</button>
+<button type="button" class="btn btn-primary" id="selectGame" disabled>Select Game</button>
+<div id="game"></div>
+<h5>Please input faans:</h5>
+<form>
+    <div class="form-group form-inline">
+        <label for="playerFaan1" id="player1Name">Player 1</label>&emsp;
+        <input type="number" class="form-control" id="playerFaan1" placeholder="Minimum is 4" min="4" value="0" disabled>&emsp;
+        <label class="radio-inline"><input type="radio" name="winner" value="0" checked />&nbsp;Winner</label>
+    </div>
+    <div class="form-group form-inline">
+        <label for="playerFaan2" id="player2Name">Player 2</label>&emsp;
+        <input type="number" class="form-control" id="playerFaan2" placeholder="Minimum is 4" min="4">&emsp;
+        <label class="radio-inline"><input type="radio" name="winner" value="1" />&nbsp;Winner</label>
+    </div>
+    <div class="form-group form-inline">
+        <label for="playerFaan3" id="player3Name">Player 3</label>&emsp;
+        <input type="number" class="form-control" id="playerFaan3" placeholder="Minimum is 4" min="4">&emsp;
+        <label class="radio-inline"><input type="radio" name="winner" value="2" />&nbsp;Winner</label>
+    </div>
+    <div class="form-group form-inline">
+        <label for="playerFaan4" id="player4Name">Player 4</label>&emsp;
+        <input type="number" class="form-control" id="playerFaan4" placeholder="Minimum is 4" min="4">&emsp;
+        <label class="radio-inline"><input type="radio" name="winner" value="3" />&nbsp;Winner</label>
+    </div>
+    <button type="button" class="btn btn-primary" id="newRound">Submit</button>
+    <button type="button" class="btn btn-primary" id="importScores" data-toggle="modal" data-target="#importScoresModal">Import Scores</button>
+    <div id="errorText" class="text-danger"></div>
+</form>
+
+<div class="modal fade" id="importScoresModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Import Scores</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group form-inline">
+                        <label for="playerImportScores1" id="playerImportScores1Name">Player 1</label>&emsp;
+                        <input type="number" class="form-control" id="playerImportScores1" value="0">&emsp;
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="playerImportScores2" id="playerImportScores2Name">Player 2</label>&emsp;
+                        <input type="number" class="form-control" id="playerImportScores2" value="0">&emsp;
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="playerImportScores3" id="playerImportScores3Name">Player 3</label>&emsp;
+                        <input type="number" class="form-control" id="playerImportScores3" value="0">&emsp;
+                    </div>
+                    <div class="form-group form-inline">
+                        <label for="playerImportScores4" id="playerImportScores4Name">Player 4</label>&emsp;
+                        <input type="number" class="form-control" id="playerImportScores4" value="0">&emsp;
+                    </div>
+                    <button type="button" class="btn btn-primary" id="importScoresSubmit" data-dismiss="modal">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/jquery.js"></script>
+<script src="js/underscore.js"></script>
+<script src="js/backbone.js"></script>
+<script src="js/backbone.marionette.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="index.js"></script>
+</body>
+</html>
