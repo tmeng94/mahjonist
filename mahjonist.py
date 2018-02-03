@@ -227,14 +227,17 @@ class GameScores(Resource):
     def post(self, gameID):
         if gameID not in games:
             return buildError(1003, gameID)
-        if not request.json or 'scores' not in request.json:
+        if not request.json or 'players' not in request.json:
             return buildError(1002)
-        if sum(request.json['scores'].values()) != 0:
+        playerScore = request.json['players']
+        if sum([p['score'] for p in playerScore]) != 0:
             return buildError(1011)
         game = games[gameID]
         newPlayers = []
         finished = False
-        for player, score in request.json['scores'].items():
+        for p in playerScore:
+            player = p['name']
+            score = p['score']
             if score < -maxGameLoss:
                 return buildError(1010, player)
             if score == -maxGameLoss:

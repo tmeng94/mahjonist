@@ -44,12 +44,24 @@ $(document).ready(function(){
     Scores = Backbone.Model.extend({
         //Create a model to hold name attribute
         defaults: {
-            players: {
-                "a": 1,
-                "b": 1,
-                "c": -3,
-                "d": 1
-            }
+            players: [
+                {
+                    "name": "a",
+                    "scores": 1
+                },
+                {
+                    "name": "b",
+                    "scores": 1
+                },
+                {
+                    "name": "c",
+                    "scores": -3
+                },
+                {
+                    "name": "d",
+                    "scores": 1
+                }
+            ]
         },
         urlRoot: "/api/game/demo/scores"
     });
@@ -64,19 +76,6 @@ $(document).ready(function(){
         }
         let playerStatus = "<table class=\"table table-striped table-condensed\"><tr>";
         let players = gameModel.get("players");
-
-        // let players = Object.entries(gameModel.get("players"));
-
-        // players = players.sort((p1, p2) => {
-        //     if (p1[0] < p2[0]) {
-        //         return -1;
-        //     }
-        //     else if (p1[0] > p2[0]) {
-        //         return 1;
-        //     }
-        //     else return 0;
-        // });
-
 
         playerStatus += "<th scope=\"col\">Round</th>";
         for (let i = 1; i <= players[0]["scores"].length; i++) {
@@ -189,9 +188,13 @@ $(document).ready(function(){
 
     $('#importPlayersSubmit').click(function(){
         let newScores = new Scores;
-        let scores = {};
+        let players = [];
         for (let i = 1; i <= 4; i++) {
-            scores[$(".importPlayers" + i + ".playerName").val()] = +$(".importPlayers" + i + ".playerScore").val();
+            let player = {
+                name: $(".importPlayers" + i + ".playerName").val(),
+                score: +$(".importPlayers" + i + ".playerScore").val()
+            }
+            players.push(player);
         }
         //let cnt = 1;
         // gameModel.get("players").forEach(player => {
@@ -199,7 +202,7 @@ $(document).ready(function(){
         //     console.log(scores[player["name"]]);
         //     cnt++;
         // });
-        newScores.set("scores", scores);
+        newScores.set("players", players);
         newScores.save(null, {
             success: res => {
                 if (res.get("success")) {
