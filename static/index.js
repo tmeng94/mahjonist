@@ -113,23 +113,21 @@ $(document).ready(function(){
         $('#errorText').html("");
     }
 
-    GameView = Backbone.View.extend({
-        // el - stands for element. Every view has an element associated in which HTML content will be rendered.
-        el: '#game',
-        // It's the first function called when this view it's instantiated.
-        initialize: function(){
-            gameModel.fetch();
-            // this.render();
-            this.listenTo(gameModel, "sync", this.render);
-            this.listenTo(gameModel, "change", this.render);
-        },
-
-        render: updateGame
-    });
-
-    let gameView = new GameView;
-
     let winner = 0;
+
+    function setFinalFaans() {
+        let winnerID = +winner + 1;
+        let winnerFaan = +$("input[id=playerFaan" + winnerID + "]").val();
+        for (let i=1; i<=4; i++) {
+            let playerFaan = +$("input[id=playerFaan" + i + "]").val();
+            if (i === winnerID) {
+                $("label[id=player" + i + "FinalFaan]").html("");
+            }
+            else {
+                $("label[id=player" + i + "FinalFaan]").html("&nbsp;(= " + playerFaan + " + " + winnerFaan + " = " + +(playerFaan + winnerFaan) + ")");
+            }
+        }
+    }
 
     $("input:radio[name=winner]").change(function () {
         winner = $("input:radio[name=winner]:checked").val();
@@ -144,8 +142,11 @@ $(document).ready(function(){
         // }
         let winnerInput = $("input[id=playerFaan" + winnerID + "]");
         // winnerInput.attr("disabled", true);
-        winnerInput.val(0);
+        // winnerInput.val(0);
+        setFinalFaans();
     });
+
+    $("input[name=faan]").on('change keyup paste mouseup', setFinalFaans);
 
     $('#newGame').click(function(){
         $.post("/api/game/demo/reset", null, res => {
@@ -154,6 +155,23 @@ $(document).ready(function(){
             }
         });
     });
+
+    GameView = Backbone.View.extend({
+        // el - stands for element. Every view has an element associated in which HTML content will be rendered.
+        el: '#game',
+        // It's the first function called when this view it's instantiated.
+        initialize: function(){
+            gameModel.fetch();
+            // this.render();
+            this.listenTo(gameModel, "sync", this.render);
+            this.listenTo(gameModel, "change", this.render);
+            setFinalFaans();
+        },
+
+        render: updateGame
+    });
+
+    let gameView = new GameView;
 
     $('#newRound').click(function(){
         // let newGame = prompt("Please Enter Game:");
@@ -171,6 +189,7 @@ $(document).ready(function(){
             cnt++;
         });
         newRound.set("faans", faans);
+        newRound.set("winner", gameModel.get("players")[winner]["name"]);
         newRound.save(null, {
             success: res => {
                 if (res.get("success")) {
@@ -193,7 +212,7 @@ $(document).ready(function(){
             let player = {
                 name: $(".importPlayers" + i + ".playerName").val(),
                 score: +$(".importPlayers" + i + ".playerScore").val()
-            }
+            };
             players.push(player);
         }
         //let cnt = 1;

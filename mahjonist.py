@@ -149,25 +149,35 @@ class NewRound(Resource):
             return buildError(1009)
         sumScores = getSumScores(gameID)
         faans = request.json['faans']
-        winner = None
-        # winner = request.json['winner']
+        # winner = None
+        winner = request.json['winner']
+        winnerFaan = request.json['faans'][winner]
         scores = {}
         for player, faan in faans.items():
             if not getNames(game, player):
                 return buildError(1005, player)
-            if faan == 0:
-                if not winner:
-                    winner = player
-                else:
-                    return buildError(1006)
-            else:
-                score = faanToScore(faan)
-                if not score:
-                    return buildError(1007)
-                if sumScores[player] + score <= -maxGameLoss:
-                    score = -maxGameLoss - sumScores[player]
-                    game['finished'] = True
-                scores[player] = score
+            if winner == player:
+                continue
+            score = faanToScore(faan + winnerFaan)
+            if not score:
+                return buildError(1007)
+            if sumScores[player] + score <= -maxGameLoss:
+                score = -maxGameLoss - sumScores[player]
+                game['finished'] = True
+            scores[player] = score
+            # if faan == 0:
+            #     if not winner:
+            #         winner = player
+            #     else:
+            #         return buildError(1006)
+            # else:
+            #     score = faanToScore(faan)
+            #     if not score:
+            #         return buildError(1007)
+            #     if sumScores[player] + score <= -maxGameLoss:
+            #         score = -maxGameLoss - sumScores[player]
+            #         game['finished'] = True
+            #     scores[player] = score
         if not winner:
             return buildError(1008)
         scores[winner] = -sum(scores.values())
