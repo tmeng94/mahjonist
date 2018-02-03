@@ -3,12 +3,24 @@ $(document).ready(function(){
     Game = Backbone.Model.extend({
         //Create a model to hold name attribute
         defaults: {
-            players: {
-                "a": [-5, -4],
-                "b": [7, -8],
-                "c": [9, 10],
-                "d": [-11, 2]
-            },
+            players: [
+                {
+                    "name": "a",
+                    "scores": [-5, -4]
+                },
+                {
+                    "name": "b",
+                    "scores": [7, -8]
+                },
+                {
+                    "name": "c",
+                    "scores": [9, 10]
+                },
+                {
+                    "name": "d",
+                    "scores": [-11, 2]
+                }
+            ],
             finished: false,
             startTime: new Date().toLocaleString()
         },
@@ -51,32 +63,34 @@ $(document).ready(function(){
             gameStatus = "The game is already finished."
         }
         let playerStatus = "<table class=\"table table-striped table-condensed\"><tr>";
-        let players = Object.entries(gameModel.get("players"));
-        //console.log(players);
-        players = players.sort((p1, p2) => {
-            if (p1[0] < p2[0]) {
-                return -1;
-            }
-            else if (p1[0] > p2[0]) {
-                return 1;
-            }
-            else return 0;
-        });
-        //console.log(players);
+        let players = gameModel.get("players");
+
+        // let players = Object.entries(gameModel.get("players"));
+
+        // players = players.sort((p1, p2) => {
+        //     if (p1[0] < p2[0]) {
+        //         return -1;
+        //     }
+        //     else if (p1[0] > p2[0]) {
+        //         return 1;
+        //     }
+        //     else return 0;
+        // });
+
 
         playerStatus += "<th scope=\"col\">Round</th>";
-        for (let i = 1; i <= players[0][1].length; i++) {
+        for (let i = 1; i <= players[0]["scores"].length; i++) {
             playerStatus += "<th scope=\"col\">" + i + "</th>";
         }
         
         playerStatus += "<th scope=\"col\">Total</th></tr>";
-        players.forEach(playerScore => {
-            playerStatus += "<tr><th scope=\"row\">" + playerScore[0] + "</th>";
-            playerScore[1].forEach(score => {
+        players.forEach(player => {
+            playerStatus += "<tr><th scope=\"row\">" + player["name"] + "</th>";
+            player["scores"].forEach(score => {
                 playerStatus += "<td>" + score + "</td>";
             });
-            if (playerScore[1].length > 0) {
-                playerStatus += "<td>" + playerScore[1].reduce((sum, i) => sum + i) + "</td>";
+            if (player["scores"].length > 0) {
+                playerStatus += "<td>" + player["scores"].reduce((sum, i) => sum + i) + "</td>";
             }
             else {
                 playerStatus += "<td>0</td>";
@@ -92,6 +106,12 @@ $(document).ready(function(){
             + "<h5>Start time: " + gameModel.get("startTime") + "</h5>"
             + playerStatus
         );
+
+        for (let i = 1; i <= 4; i++) {
+            $("label[id=player" + i + "Name]").html(players[i-1]["name"]);
+            $(".importPlayers" + i + ".playerName").val(players[i-1]["name"]);
+        }
+        $('#errorText').html("");
     }
 
     GameView = Backbone.View.extend({
@@ -116,16 +136,24 @@ $(document).ready(function(){
         winner = $("input:radio[name=winner]:checked").val();
         // console.log(winner);
         let winnerID = +winner + 1;
-        for (let i=1; i<=4; i++) {
-            let playerInput = $("input[id=playerFaan" + i + "]");
-            if (playerInput.attr("disabled")) {
-                playerInput.attr("disabled", false);
-                playerInput.val("");
-            }
-        }
+        // for (let i=1; i<=4; i++) {
+        //     let playerInput = $("input[id=playerFaan" + i + "]");
+        //     if (playerInput.attr("disabled")) {
+        //         playerInput.attr("disabled", false);
+        //         playerInput.val("");
+        //     }
+        // }
         let winnerInput = $("input[id=playerFaan" + winnerID + "]");
-        winnerInput.attr("disabled", true);
+        // winnerInput.attr("disabled", true);
         winnerInput.val(0);
+    });
+
+    $('#newGame').click(function(){
+        $.post("/api/game/demo/reset", null, res => {
+            if (res["success"]) {
+                gameModel.fetch();
+            }
+        });
     });
 
     $('#newRound').click(function(){
@@ -138,8 +166,8 @@ $(document).ready(function(){
         let newRound = new Round;
         let faans = {};
         let cnt = 1;
-        Object.keys(gameModel.get("players")).forEach(player => {
-            faans[player] = +$("input[id=playerFaan" + player.substr(-1) + "]").val();
+        gameModel.get("players").forEach(player => {
+            faans[player["name"]] = +$("input[id=playerFaan" + cnt + "]").val();
             //console.log(faans[player]);
             cnt++;
         });
@@ -159,15 +187,18 @@ $(document).ready(function(){
         });
     });
 
-    $('#importScoresSubmit').click(function(){
+    $('#importPlayersSubmit').click(function(){
         let newScores = new Scores;
         let scores = {};
-        let cnt = 1;
-        Object.keys(gameModel.get("players")).forEach(player => {
-            scores[player] = +$("input[id=playerImportScores" + player.substr(-1) + "]").val();
-            console.log(scores[player]);
-            cnt++;
-        });
+        for (let i = 1; i <= 4; i++) {
+            scores[$(".importPlayers" + i + ".playerName").val()] = +$(".importPlayers" + i + ".playerScore").val();
+        }
+        //let cnt = 1;
+        // gameModel.get("players").forEach(player => {
+        //     scores[player["name"]] = +$("input[id=playerImportScores" + cnt + "]").val();
+        //     console.log(scores[player["name"]]);
+        //     cnt++;
+        // });
         newScores.set("scores", scores);
         newScores.save(null, {
             success: res => {

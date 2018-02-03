@@ -1,1 +1,1 @@
-{"demo": {"players": {"Player 1": [], "Player 2": [], "Player 3": [], "Player 4": []}, "startTime": "2018-01-01 00:00:00", "finished": false}}
+{"demo": {"players": [{"name": "Player A", "scores": []}, {"name": "Player B", "scores": []}, {"name": "Player C", "scores": []}, {"name": "Player D", "scores": []}], "startTime": "2018-02-02 18:19:18", "finished": false}}

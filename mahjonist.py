@@ -66,6 +66,9 @@ def saveGames():
         return False
     return True
 
+def getNames(game, name):
+    return name in [p['name'] for p in game['players']]
+
 def buildError(code, extra=None):
     res = {
         'success': False,
@@ -94,8 +97,8 @@ def getSumScores(gameID):
         return False
     game = games[gameID]
     sumScores = {}
-    for player, scores in game['players'].items():
-        sumScores[player] = sum(scores)
+    for player in game['players']:
+        sumScores[player['name']] = sum(player['scores'])
     return sumScores
 
 class Games(Resource):
@@ -116,12 +119,15 @@ class Games(Resource):
             return buildError(1004)
         gameID = str(uuid.uuid4())
         game = {
-            'players': {},
+            'players': [],
             'finished': False,
             'startTime': strftime("%Y-%m-%d %H:%M:%S")
         }
         for player in players:
-            game['players'][player] = []
+            game['players'].append({
+                'name': player,
+                'scores': []
+            })
         games[gameID] = game
         saveGames()
         return {
@@ -144,9 +150,10 @@ class NewRound(Resource):
         sumScores = getSumScores(gameID)
         faans = request.json['faans']
         winner = None
+        # winner = request.json['winner']
         scores = {}
         for player, faan in faans.items():
-            if player not in game['players']:
+            if not getNames(game, player):
                 return buildError(1005, player)
             if faan == 0:
                 if not winner:
@@ -164,8 +171,8 @@ class NewRound(Resource):
         if not winner:
             return buildError(1008)
         scores[winner] = -sum(scores.values())
-        for player, playerScores in game['players'].items():
-            playerScores.append(scores[player])
+        for player in game['players']:
+            player['scores'].append(scores[player['name']])
         games[gameID] = game
         saveGames()
         return {
@@ -192,6 +199,22 @@ class SingleGame(Resource):
 
 api.add_resource(SingleGame, apiRoot + '/game/<string:gameID>')
 
+class ResetGame(Resource):
+    def post(self, gameID):
+        if gameID not in games:
+            return buildError(1003, gameID)
+        game = games[gameID]
+        for player in game['players']:
+            player['scores'] = []
+        game['startTime'] = strftime("%Y-%m-%d %H:%M:%S")
+        game['finished'] = False
+        saveGames()
+        return {
+            'success': True
+        }
+
+api.add_resource(ResetGame, apiRoot + '/game/<string:gameID>/reset')
+
 class GameScores(Resource):
     def get(self, gameID):
         if gameID not in games:
@@ -209,22 +232,26 @@ class GameScores(Resource):
         if sum(request.json['scores'].values()) != 0:
             return buildError(1011)
         game = games[gameID]
-        players = game['players'].copy()
+        newPlayers = []
         finished = False
-        for player in players:
-            if player not in request.json['scores']:
-                return buildError(1005, player)
-            if request.json['scores'][player] < -maxGameLoss:
+        for player, score in request.json['scores'].items():
+            if score < -maxGameLoss:
                 return buildError(1010, player)
-            if request.json['scores'][player] == -maxGameLoss:
+            if score == -maxGameLoss:
                 finished = True
-            players[player] = [request.json['scores'][player]]
-        game['finished'] = finished
-        game['players'] = players
-        saveGames()
-        return {
-            'success': True
-        }
+            newPlayers.append({
+                'name': player,
+                'scores': [score]
+            })
+        if len(newPlayers) == 4:
+            game['finished'] = finished
+            game['players'] = newPlayers
+            saveGames()
+            return {
+                'success': True
+            }
+        else:
+            return buildError(1004)
 
 api.add_resource(GameScores, apiRoot + '/game/<string:gameID>/scores')
 
