@@ -236,4 +236,11 @@ $(document).ready(function(){
             }
         });
     });
+
+    $('#clearFaans').click(function(){
+        for (let i = 1; i <= 4; i++) {
+            $("input[id=playerFaan" + i + "]").val("");
+        }
+        setFinalFaans();
+    });
 });

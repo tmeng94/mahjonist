@@ -14,30 +14,31 @@
 <form>
     <div class="form-group form-inline">
         <label for="playerFaan1" id="player1Name">Player 1</label>&emsp;
-        <input type="number" class="form-control" id="playerFaan1" name="faan" value="0" min="0">&emsp;
+        <input type="number" class="form-control" id="playerFaan1" name="faan" min="0">&emsp;
         <label class="radio-inline"><input type="radio" name="winner" value="0" checked />&nbsp;Winner</label>
         <label for="playerFaan1" class="finalFaan" id="player1FinalFaan"></label>&emsp;
     </div>
     <div class="form-group form-inline">
         <label for="playerFaan2" id="player2Name">Player 2</label>&emsp;
-        <input type="number" class="form-control" id="playerFaan2" name="faan" value="0" min="0">&emsp;
+        <input type="number" class="form-control" id="playerFaan2" name="faan" min="0">&emsp;
         <label class="radio-inline"><input type="radio" name="winner" value="1" />&nbsp;Winner</label>
         <label for="playerFaan2" class="finalFaan" id="player2FinalFaan"></label>&emsp;
     </div>
     <div class="form-group form-inline">
         <label for="playerFaan3" id="player3Name">Player 3</label>&emsp;
-        <input type="number" class="form-control" id="playerFaan3" name="faan" value="0" min="0">&emsp;
+        <input type="number" class="form-control" id="playerFaan3" name="faan" min="0">&emsp;
         <label class="radio-inline"><input type="radio" name="winner" value="2" />&nbsp;Winner</label>
         <label for="playerFaan3" class="finalFaan" id="player3FinalFaan"></label>&emsp;
     </div>
     <div class="form-group form-inline">
         <label for="playerFaan4" id="player4Name">Player 4</label>&emsp;
-        <input type="number" class="form-control" id="playerFaan4" name="faan" value="0" min="0">&emsp;
+        <input type="number" class="form-control" id="playerFaan4" name="faan" min="0">&emsp;
         <label class="radio-inline"><input type="radio" name="winner" value="3" />&nbsp;Winner</label>
         <label for="playerFaan4" class="finalFaan" id="player4FinalFaan"></label>&emsp;
     </div>
     <button type="button" class="btn btn-primary" id="newRound">Submit</button>
     <button type="button" class="btn btn-primary" id="importPlayers" data-toggle="modal" data-target="#importPlayersModal">Import Players</button>
+    <button type="button" class="btn btn-primary" id="clearFaans">Clear</button>
     <div id="errorText" class="text-danger"></div>
 </form>
 
