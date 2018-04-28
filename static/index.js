@@ -1,7 +1,13 @@
 $(document).ready(function(){
 
+    let config = {
+        //TODO retrieve from server
+        lastGame: "demo",
+        maxLoss: 50,
+        maxGameLoss: 200
+    };
+
     Game = Backbone.Model.extend({
-        //Create a model to hold name attribute
         defaults: {
             players: [
                 {
@@ -29,7 +35,6 @@ $(document).ready(function(){
     });
 
     Round = Backbone.Model.extend({
-        //Create a model to hold name attribute
         defaults: {
             faans: {
                 "a": 4,
@@ -42,7 +47,6 @@ $(document).ready(function(){
     });
 
     Scores = Backbone.Model.extend({
-        //Create a model to hold name attribute
         defaults: {
             players: [
                 {
@@ -66,8 +70,7 @@ $(document).ready(function(){
         urlRoot: "/api/game/demo/scores"
     });
 
-    let gameModel= new Game;
-    //let nameModel= new Name({name: 'World'});
+    let gameModel = new Game;
 
     function updateGame(){
         let gameStatus = "The game is ongoing.";
@@ -98,8 +101,6 @@ $(document).ready(function(){
         });
         playerStatus += "</table>";
 
-
-        //alert(nameModel.get("name"));
         $(this.el).html(
             "<h5>" + gameStatus + "</h5>"
             + "<h5>Start time: " + gameModel.get("startTime") + "</h5>"
@@ -124,25 +125,27 @@ $(document).ready(function(){
                 $("label[id=player" + i + "FinalFaan]").html("");
             }
             else {
-                $("label[id=player" + i + "FinalFaan]").html("&nbsp;(= " + playerFaan + " + " + winnerFaan + " = " + +(playerFaan + winnerFaan) + ")");
+                let finalFaanStr = " = " + +(playerFaan + winnerFaan);
+                let maxFaan = Math.ceil(Math.log2(config.maxLoss) + 4);
+                if (playerFaan + winnerFaan >= maxFaan) {
+                    finalFaanStr = " ≥ " + +maxFaan;
+                }
+                $("label[id=player" + i + "FinalFaan]").html("&nbsp;(= " + playerFaan + " + " + winnerFaan + finalFaanStr + ")");
             }
         }
     }
 
+    function clearFaans () {
+        for (let i = 1; i <= 4; i++) {
+            $("input[id=playerFaan" + i + "]").val("");
+        }
+        setFinalFaans();
+    }
+
     $("input:radio[name=winner]").change(function () {
         winner = $("input:radio[name=winner]:checked").val();
-        // console.log(winner);
         let winnerID = +winner + 1;
-        // for (let i=1; i<=4; i++) {
-        //     let playerInput = $("input[id=playerFaan" + i + "]");
-        //     if (playerInput.attr("disabled")) {
-        //         playerInput.attr("disabled", false);
-        //         playerInput.val("");
-        //     }
-        // }
         let winnerInput = $("input[id=playerFaan" + winnerID + "]");
-        // winnerInput.attr("disabled", true);
-        // winnerInput.val(0);
         setFinalFaans();
     });
 
@@ -157,12 +160,9 @@ $(document).ready(function(){
     });
 
     GameView = Backbone.View.extend({
-        // el - stands for element. Every view has an element associated in which HTML content will be rendered.
         el: '#game',
-        // It's the first function called when this view it's instantiated.
         initialize: function(){
             gameModel.fetch();
-            // this.render();
             this.listenTo(gameModel, "sync", this.render);
             this.listenTo(gameModel, "change", this.render);
             setFinalFaans();
@@ -174,12 +174,6 @@ $(document).ready(function(){
     let gameView = new GameView;
 
     $('#newRound').click(function(){
-        // let newGame = prompt("Please Enter Game:");
-        // gameModel.set("game", newGame);
-        //nameModel.set({"name": newName});
-        // console.log(winner);
-
-        // gameModel.set("startTime", new Date().toLocaleString());
         let newRound = new Round;
         let faans = {};
         let cnt = 1;
@@ -194,6 +188,7 @@ $(document).ready(function(){
             success: res => {
                 if (res.get("success")) {
                     gameModel.fetch();
+                    clearFaans();
                 }
                 else {
                     $('#errorText').html(res.get("error").text);
@@ -215,17 +210,12 @@ $(document).ready(function(){
             };
             players.push(player);
         }
-        //let cnt = 1;
-        // gameModel.get("players").forEach(player => {
-        //     scores[player["name"]] = +$("input[id=playerImportScores" + cnt + "]").val();
-        //     console.log(scores[player["name"]]);
-        //     cnt++;
-        // });
         newScores.set("players", players);
         newScores.save(null, {
             success: res => {
                 if (res.get("success")) {
                     gameModel.fetch();
+                    clearFaans();
                 }
                 else {
                     $('#errorText').html(res.get("error").text);
@@ -237,10 +227,13 @@ $(document).ready(function(){
         });
     });
 
-    $('#clearFaans').click(function(){
-        for (let i = 1; i <= 4; i++) {
-            $("input[id=playerFaan" + i + "]").val("");
-        }
-        setFinalFaans();
+    $('#clearFaans').click(clearFaans);
+
+    $('#undoLastRoundSubmit').click(function(){
+        $.post("/api/game/demo/undo", null, res => {
+            if (res["success"]) {
+                gameModel.fetch();
+            }
+        });
     });
 });

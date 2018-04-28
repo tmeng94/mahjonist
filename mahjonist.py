@@ -28,46 +28,51 @@ errors = {
     1011: 'Import error, sum of all 4 scores is not 0'
 }
 
-games = {}
-maxLoss = 50
-maxGameLoss = 200
+gameData = {}
+
 
 @app.route("/")
 def index():
-   return app.send_static_file('index.html')
+    return app.send_static_file('index.html')
+
 
 @app.route('/<path:path>')
 def static_proxy(path):
-  # send_static_file will guess the correct MIME type
-  return app.send_static_file(path)
+    # send_static_file will guess the correct MIME type
+    return app.send_static_file(path)
+
 
 def loadGames():
-    global games
+    global config
+    global gameData
     try:
         with open('games.json', 'r') as f:
             savedGames = f.read()
             if savedGames:
-                games = json.loads(savedGames)
+                gameData = json.loads(savedGames)
             f.close()
     except FileNotFoundError:
-        games = {}
+        gameData = {"config": {"lastGame": "", "maxLoss": 50, "maxGameLoss": 200}, "games": {}}
     except Exception as e:
         logging.error(traceback.format_exc())
         return False
     return True
+
 
 def saveGames():
     try:
         with open('games.json', 'w') as f:
-            f.write(json.dumps(games))
+            f.write(json.dumps(gameData))
             f.close()
     except Exception as e:
         logging.error(traceback.format_exc())
         return False
     return True
 
+
 def getNames(game, name):
     return name in [p['name'] for p in game['players']]
+
 
 def buildError(code, extra=None):
     res = {
@@ -83,31 +88,42 @@ def buildError(code, extra=None):
         res['error']['text'] += '.'
     return res
 
+
 def faanToScore(faan):
     if faan < 4:
         return 0
     else:
         score = -pow(2, faan - 4)
-        if score < -maxLoss:
-            score = -maxLoss
+        if score < -gameData["config"]["maxLoss"]:
+            score = -gameData["config"]["maxLoss"]
         return score
 
+
 def getSumScores(gameID):
-    if gameID not in games:
+    if gameID not in gameData["games"]:
         return False
-    game = games[gameID]
+    game = gameData["games"][gameID]
     sumScores = {}
     for player in game['players']:
         sumScores[player['name']] = sum(player['scores'])
     return sumScores
 
+
+class Config(Resource):
+    def get(self):
+        return gameData["config"]
+
+
+api.add_resource(Config, apiRoot + '/config')
+
+
 class Games(Resource):
     def get(self):
         listGames = {}
-        for gameID in games:
+        for gameID in gameData["games"]:
             listGame = {}
-            listGame['startTime'] = games[gameID]['startTime']
-            listGame['finished'] = games[gameID]['finished']
+            listGame['startTime'] = gameData["games"][gameID]['startTime']
+            listGame['finished'] = gameData["games"][gameID]['finished']
             listGames[gameID] = listGame
         return listGames
 
@@ -128,23 +144,24 @@ class Games(Resource):
                 'name': player,
                 'scores': []
             })
-        games[gameID] = game
+        gameData["games"][gameID] = game
         saveGames()
         return {
             'success': True,
             'gameID': gameID
         }
 
+
 api.add_resource(Games, apiRoot + '/game')
 
 
 class NewRound(Resource):
     def post(self, gameID):
-        if gameID not in games:
+        if gameID not in gameData["games"]:
             return buildError(1003, gameID)
         if not request.json or 'faans' not in request.json:
             return buildError(1002)
-        game = games[gameID]
+        game = gameData["games"][gameID]
         if game['finished']:
             return buildError(1009)
         sumScores = getSumScores(gameID)
@@ -161,59 +178,50 @@ class NewRound(Resource):
             score = faanToScore(faan + winnerFaan)
             if not score:
                 return buildError(1007)
-            if sumScores[player] + score <= -maxGameLoss:
-                score = -maxGameLoss - sumScores[player]
+            if sumScores[player] + score <= -gameData["config"]["maxGameLoss"]:
+                score = -gameData["config"]["maxGameLoss"] - sumScores[player]
                 game['finished'] = True
             scores[player] = score
-            # if faan == 0:
-            #     if not winner:
-            #         winner = player
-            #     else:
-            #         return buildError(1006)
-            # else:
-            #     score = faanToScore(faan)
-            #     if not score:
-            #         return buildError(1007)
-            #     if sumScores[player] + score <= -maxGameLoss:
-            #         score = -maxGameLoss - sumScores[player]
-            #         game['finished'] = True
-            #     scores[player] = score
         if not winner:
             return buildError(1008)
         scores[winner] = -sum(scores.values())
         for player in game['players']:
             player['scores'].append(scores[player['name']])
-        games[gameID] = game
+        gameData["games"][gameID] = game
         saveGames()
         return {
             'success': True,
             'scores': getSumScores(gameID)
         }
 
+
 api.add_resource(NewRound, apiRoot + '/game/<string:gameID>/newround')
+
 
 class SingleGame(Resource):
     def get(self, gameID):
-        if gameID not in games:
+        if gameID not in gameData["games"]:
             return buildError(1003, gameID)
-        return games[gameID]
+        return gameData["games"][gameID]
 
     def delete(self, gameID):
-        if gameID not in games:
+        if gameID not in gameData["games"]:
             return buildError(1003, gameID)
-        games.pop(gameID, None)
+        gameData["games"].pop(gameID, None)
         saveGames()
         return {
             'success': True
         }
 
+
 api.add_resource(SingleGame, apiRoot + '/game/<string:gameID>')
+
 
 class ResetGame(Resource):
     def post(self, gameID):
-        if gameID not in games:
+        if gameID not in gameData["games"]:
             return buildError(1003, gameID)
-        game = games[gameID]
+        game = gameData["games"][gameID]
         for player in game['players']:
             player['scores'] = []
         game['startTime'] = strftime("%Y-%m-%d %H:%M:%S")
@@ -223,34 +231,53 @@ class ResetGame(Resource):
             'success': True
         }
 
+
 api.add_resource(ResetGame, apiRoot + '/game/<string:gameID>/reset')
+
+
+class UndoLastRound(Resource):
+    def post(self, gameID):
+        if gameID not in gameData["games"]:
+            return buildError(1003, gameID)
+        game = gameData["games"][gameID]
+        for player in game['players']:
+            player['scores'].pop()
+        game['finished'] = False
+        saveGames()
+        return {
+            'success': True
+        }
+
+
+api.add_resource(UndoLastRound, apiRoot + '/game/<string:gameID>/undo')
+
 
 class GameScores(Resource):
     def get(self, gameID):
-        if gameID not in games:
+        if gameID not in gameData["games"]:
             return buildError(1003, gameID)
-        game = games[gameID].copy()
+        game = gameData["games"][gameID].copy()
         game.pop('players', None)
         game['scores'] = getSumScores(gameID)
         return game
 
     def post(self, gameID):
-        if gameID not in games:
+        if gameID not in gameData["games"]:
             return buildError(1003, gameID)
         if not request.json or 'players' not in request.json:
             return buildError(1002)
         playerScore = request.json['players']
         if sum([p['score'] for p in playerScore]) != 0:
             return buildError(1011)
-        game = games[gameID]
+        game = gameData["games"][gameID]
         newPlayers = []
         finished = False
         for p in playerScore:
             player = p['name']
             score = p['score']
-            if score < -maxGameLoss:
+            if score < -gameData["config"]["maxGameLoss"]:
                 return buildError(1010, player)
-            if score == -maxGameLoss:
+            if score == -gameData["config"]["maxGameLoss"]:
                 finished = True
             newPlayers.append({
                 'name': player,
@@ -265,6 +292,7 @@ class GameScores(Resource):
             }
         else:
             return buildError(1004)
+
 
 api.add_resource(GameScores, apiRoot + '/game/<string:gameID>/scores')
 

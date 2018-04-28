@@ -39,14 +39,15 @@
     <button type="button" class="btn btn-primary" id="newRound">Submit</button>
     <button type="button" class="btn btn-primary" id="importPlayers" data-toggle="modal" data-target="#importPlayersModal">Import Players</button>
     <button type="button" class="btn btn-primary" id="clearFaans">Clear</button>
+    <button type="button" class="btn btn-primary" id="undoLastRound" data-toggle="modal" data-target="#undoLastRoundModal">Undo</button>
     <div id="errorText" class="text-danger"></div>
 </form>
 
-<div class="modal fade" id="importPlayersModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="importPlayersModal" tabindex="-1" role="dialog" aria-labelledby="importPlayersModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Import Players</h5>
+                <h5 class="modal-title" id="importPlayersModalLabel">Import Players</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -71,6 +72,25 @@
                     </div>
                     <button type="button" class="btn btn-primary" id="importPlayersSubmit" data-dismiss="modal">Submit</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="undoLastRoundModal" tabindex="-1" role="dialog" aria-labelledby="undoLastRoundModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="undoLastRoundModalLabel">Undo Last Round</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure to undo last round of game?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-ok" id="undoLastRoundSubmit" data-dismiss="modal">Confirm</button>
             </div>
         </div>
     </div>

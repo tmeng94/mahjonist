@@ -1,1 +1,1 @@
-{"demo": {"players": [{"name": "Player A", "scores": []}, {"name": "Player B", "scores": []}, {"name": "Player C", "scores": []}, {"name": "Player D", "scores": []}], "startTime": "2018-02-02 18:19:18", "finished": false}}
+{"config": {"lastGame": "demo", "maxLoss": 50, "maxGameLoss": 200}, "games": {"demo": {"players": [{"name": "\u7532", "scores": [150, 150, -50]}, {"name": "\u4e59", "scores": [-50, -50, 150]}, {"name": "\u4e19", "scores": [-50, -50, -50]}, {"name": "\u4e01", "scores": [-50, -50, -50]}], "startTime": "2018-02-03 14:02:02", "finished": false}}}
